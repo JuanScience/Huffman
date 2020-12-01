@@ -16,6 +16,7 @@ public class Huffman {
         encrypt(path);
     }
     
+    //Método para encriptar texto cuya ruta recibe como parámetro
     public static String[][] encrypt(String path) throws IOException{
         readFile(path);
         huffmanArray = order(huffmanArray);
@@ -35,13 +36,14 @@ public class Huffman {
         return dictionary;
     }
     
+    //Crea un árbol siguiendo el algoritmo de Huffman a partir de un vector de nodos
     public static String[][] huffmanAlgorithm(Node[] huffmanArray, String[][] dictionary) {
-        while (huffmanArray.length > 1){
-            Node n = new Node(huffmanArray[0].weight + huffmanArray[1].weight);
-            n.setLeft(huffmanArray[0]);
-            n.setRight(huffmanArray[1]);
-            n.setData('¥');
-            huffmanArray = adjust(huffmanArray, n);
+        while (huffmanArray.length > 1){//Lee todo el vector
+            Node n = new Node(huffmanArray[0].weight + huffmanArray[1].weight);//Crea un nuevo nodo con la suma de los dos primeros
+            n.setLeft(huffmanArray[0]);//Asigna nodo izquierdo del nuevo nodo
+            n.setRight(huffmanArray[1]);//Asigna nodo derecho del nuevo nodo
+            n.setData('¥'); //Identificado de los nuevos nodos (Solo visual)
+            huffmanArray = adjust(huffmanArray, n); //Ajusta el vector
             for (int i = 0; i < huffmanArray.length; i++) {
                 System.out.print("[(" + huffmanArray[i].data + ")" + huffmanArray[i].weight + "]");
             }
@@ -52,6 +54,7 @@ public class Huffman {
         return dictionary;
     }
     
+    //Método recursivo para crear el diccionario leyendo in orden el árbol huffman
     public static void readInOrder(Node n, String s){        
         if (n != null) {   
             if(n.getData() != '¥'){
@@ -67,15 +70,17 @@ public class Huffman {
         }
     }
     
+    //Ajusta el vector con un nuevo nodo
     public static Node[] adjust(Node[] huffmanArray, Node n){
-        Node[] R = new Node[huffmanArray.length - 1];
-        R[0] = n;
+        Node[] R = new Node[huffmanArray.length - 1]; //Crea nuevo vector con una posición menos del vector dado
+        R[0] = n; //Copia en nuevo nodo en la primera posición de un nuevo vector
         for (int i = 2; i < huffmanArray.length; i++) {
-            R[i - 1] = huffmanArray[i];
+            R[i - 1] = huffmanArray[i]; //Copia el resto de posiciones al nuevo vector
         }
         return order(R);
     } 
     
+    //Lee archivo línea por línea
     public static void readFile(String file) throws FileNotFoundException, IOException{
         File archivo = null;
         FileReader fr = null;
@@ -108,6 +113,7 @@ public class Huffman {
         }
     }
     
+    //Cuenta los caracteres de un string dado y guarda el conteo en un vector de nodos
     public static void countCharacters(String linea) {
         for (int i = 0; i < linea.length(); i++) { //Recorre la línea de texto
             int iE = exists(linea.charAt(i), huffmanArray); //Verifica posición de letra leída
@@ -121,41 +127,45 @@ public class Huffman {
                 if(iE == -2){ //Si no existe
                     huffmanArray = addNode(huffmanArray, linea.charAt(i), count);//Crea un nuevo nodo
                 }else{
-                    huffmanArray[iE].setWeight(huffmanArray[iE].getWeight() + count);
-                    huffmanArray[iE].setFlag(true);
+                    huffmanArray[iE].setWeight(huffmanArray[iE].getWeight() + count); //Suma el contéo al conteo del nodo correspondiente a la letra
+                    huffmanArray[iE].setFlag(true); //Marca el nodo como leído
                 }
             }
         }
-        blackFlag(huffmanArray);
+        blackFlag(huffmanArray); //Desmarca todos los nodos como leídos
     }
     
-    public static int exists(char c, Node[] n){ //Valida si el nodo existe y ya fue leído
-        int response = -2;
+    //Valida si el nodo existe y ya fue leído
+    public static int exists(char c, Node[] n){
+        int response = -2; //Valor predeterminado por si no encuentra el nodo
         for (int i = 0; i < n.length; i++) {
-            if(c == n[i].data && n[i].flag == true){
+            if(c == n[i].data && n[i].flag == true){ //Si encuentra el nodo ya leído
                 response = -1;
             }
-            else if(c == n[i].data && n[i].flag == false) //retorna la posición
+            else if(c == n[i].data && n[i].flag == false) //Si encuentra el nodo sin leer retorna la posición
                 response = i;
         }
         return response; //Retorna -1 si ya fue leído, retorna -2 si no existe o la posición
     }
     
+    //Agrega una nueva posición al vector
     public static Node[] addNode(Node[] n, char c, int w){
-        Node[] R = new Node[n.length + 1];
-        Node newNode = new Node(c, w);
-        newNode.flag = true;
-        R[0] = newNode;
-        System.arraycopy(n, 0, R, 1, n.length);
+        Node[] R = new Node[n.length + 1];//Crea un nuevo vector con una posición más
+        Node newNode = new Node(c, w); //Crea un nuevo nodo con los parámetros dados
+        newNode.flag = true; //Marca el nodo como leído
+        R[0] = newNode; //Agrega el nuevo nodo en la primera posición del nuevo vector
+        System.arraycopy(n, 0, R, 1, n.length);//Copia el resto de posiciones al nuevo vector
         return R;
     }
     
+    //Recorre el vector dado para marcar todos los nodos como no leídos
     public static void blackFlag(Node[] n){
         for (Node n1 : n) {
             n1.flag = false;
         }
     }
     
+    //Ordena los nodos del vector de menor a mayor según la frecuencia de la letra 
     private static Node[] order(Node[] huffmanArray) {
         Node aux;
         for (int i = 0; i < huffmanArray.length; i++) {
@@ -191,34 +201,8 @@ public class Huffman {
             }
         }
     }
-
-    public static void copiaB (String ficheroOriginal, String ficheroCopia){
-        try{
-            // Se abre el fichero original para lectura
-            FileInputStream fileInput = new FileInputStream(ficheroOriginal);
-            BufferedInputStream bufferedInput = new BufferedInputStream(fileInput);
-
-            // Se abre el fichero donde se hará la copia
-            FileOutputStream fileOutput = new FileOutputStream (ficheroCopia);
-            BufferedOutputStream bufferedOutput = new BufferedOutputStream(fileOutput);
-
-            // Bucle para leer de un fichero y escribir en el otro.
-            byte [] array = new byte[1000];
-            int leidos = bufferedInput.read(array);
-            while (leidos > 0)
-            {
-                bufferedOutput.write(array,0,leidos);
-                leidos=bufferedInput.read(array);
-            }
-
-            // Cierre de los ficheros
-            bufferedInput.close();
-            bufferedOutput.close();
-        }
-        catch (IOException e){
-        }
-    }
     
+    //Genera el archivo comprimido
     public static void genBinary(String path) throws FileNotFoundException, IOException{
         //Para el binario
         FileOutputStream fos = new FileOutputStream("C:/Users/user/Desktop/prueba.arq");
@@ -284,30 +268,5 @@ public class Huffman {
         //Cerramos el binario
         salida.flush();
         fos.close();
-    }
-    
-    public static void copia (String ficheroOriginal, String ficheroCopia){
-        try{
-            // Se abre el fichero original para lectura
-            FileInputStream fileInput = new FileInputStream(ficheroOriginal);
-            BufferedInputStream bufferedInput = new BufferedInputStream(fileInput);
-
-            // Se abre el fichero donde se hará la copia
-            FileOutputStream fileOutput = new FileOutputStream (ficheroCopia);
-            BufferedOutputStream bufferedOutput = new BufferedOutputStream(fileOutput);
-
-            // Bucle para leer de un fichero y escribir en el otro.
-            byte [] array = new byte[1000];
-            int leidos = bufferedInput.read(array);
-            while (leidos > 0){
-                bufferedOutput.write(array, 0, leidos);
-                leidos = bufferedInput.read(array);
-            }
-            // Cierre de los ficheros
-            bufferedInput.close();
-            bufferedOutput.close();
-        }
-        catch (IOException e){
-        }
     }
 }
