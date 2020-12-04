@@ -3,36 +3,38 @@ package huffman;
 import java.io.*;
 
 /**
- * @author Juan Carlos Salazar Muñoz
+ * @authors Ormolgud Gonzalez Cardona
+ *          Juan Carlos Salazar Muñoz
  */
 public class Huffman {
     
     static Node[] huffmanArray = new Node[0];
     static String[][] dictionary;
+    //static int[] positions10 = new int[0];
+    //static int[] positions13 = new int[0];
+    //static int position = 0;
     static int count;
 
     public static void main(String[] args) throws IOException {
-        String path = ("C:/Users/user/Desktop/Coco.txt");
-        encrypt(path);
+        String pathTxtToEn = "C:/Users/user/Desktop/Cuentos.txt";
+        String pathTxtToDe = "C:/Users/user/Desktop/decrypt.txt";
+        String pathArq = "C:/Users/user/Desktop/Prueba.arq";
+        encrypt(pathTxtToEn, pathArq);
+        decrypt(pathArq, pathTxtToDe);
     }
     
     //Método para encriptar texto cuya ruta recibe como parámetro
-    public static String[][] encrypt(String path) throws IOException{
-        readFile(path);
+    public static String[][] encrypt(String pathTxtToEn, String pathArq) throws IOException{
+        readFile(pathTxtToEn);
         huffmanArray = order(huffmanArray);
-        for (int i = 0; i < huffmanArray.length; i++) {
+        for (int i = 0; i < huffmanArray.length; i++) { //Escribe el vector antes de ser afectado por el algoritmo de Huffman
             System.out.print("[(" + huffmanArray[i].data + ")" + huffmanArray[i].weight + "]");
         }
         System.out.println("");
         dictionary = new String[2][huffmanArray.length];
         count = 0;
         dictionary = huffmanAlgorithm(huffmanArray, dictionary);
-        System.out.println("");
-        for (int i = 0; i < dictionary[0].length; i++) {
-            System.out.print("[(" + dictionary[0][i] + ")" + dictionary[1][i] + "]");
-        }
-        System.out.println("");
-        genBinary(path);
+        genBinary(pathTxtToEn, pathArq);
         return dictionary;
     }
     
@@ -44,7 +46,7 @@ public class Huffman {
             n.setRight(huffmanArray[1]);//Asigna nodo derecho del nuevo nodo
             n.setData('¥'); //Identificado de los nuevos nodos (Solo visual)
             huffmanArray = adjust(huffmanArray, n); //Ajusta el vector
-            for (int i = 0; i < huffmanArray.length; i++) {
+            for (int i = 0; i < huffmanArray.length; i++) { //Imprime árbol mientras se suman los nodos
                 System.out.print("[(" + huffmanArray[i].data + ")" + huffmanArray[i].weight + "]");
             }
             System.out.println("");
@@ -66,7 +68,7 @@ public class Huffman {
             readInOrder(n.getLeft(), s = s + "0");
             s= s.substring(0, s.length() - 1);
             readInOrder(n.getRight(), s = s + "1");
-            s= s.substring(0, s.length() - 1);
+            s = s.substring(0, s.length() - 1);
         }
     }
     
@@ -180,93 +182,228 @@ public class Huffman {
         return huffmanArray;
     }
     
-    public static void printFile(){
-        FileWriter fichero = null;
-        PrintWriter pw;// = null;
-        try
-        {
-            fichero = new FileWriter("C:/Users/user/Desktop/prueba.txt");
-            pw = new PrintWriter(fichero);
-
-            for (int i = 0; i < 10; i++)
-                pw.println("Linea " + i);
-
-        } catch (IOException e) {
-        } finally {
-            try {
-            // Aseguramos que se cierra el fichero.
-            if (null != fichero)
-               fichero.close();
-            } catch (IOException e2) {
-            }
-        }
-    }
-    
     //Genera el archivo comprimido
-    public static void genBinary(String path) throws FileNotFoundException, IOException{
-        //Para el binario
-        FileOutputStream fos = new FileOutputStream("C:/Users/user/Desktop/prueba.arq");
-        BufferedOutputStream salida = new BufferedOutputStream(fos);
-
-        File archivo = null;
-        FileReader fr = null;
-        BufferedReader br;// = null;
+    public static void genBinary(String pathTxtToEn, String pathArq) throws FileNotFoundException, IOException{
         try {
-            // Apertura del fichero y creacion de BufferedReader para poder
-            // hacer una lectura comoda (disponer del metodo readLine()).
-            archivo = new File (path);
-            fr = new FileReader (archivo);
-            br = new BufferedReader(fr);
 
-            // Lectura del fichero
+            //Para escribir el binario
+            FileOutputStream fileOutput = new FileOutputStream(pathArq);
+            BufferedOutputStream bufferedOutput = new BufferedOutputStream(fileOutput);
+
+            //Para leer el archivo en texto
+            File archivo = new File (pathTxtToEn);
+            FileReader fr = new FileReader (archivo);
+            BufferedReader bufferedInput = new BufferedReader(fr);
             
+            String bitString; //Variable para almacenar los bits encriptados
+            
+            //Escribimos el largo del diccionario
+            int lenDictionary = dictionary[0].length;
+            bufferedOutput.write(lenDictionary);
+            bufferedOutput.write(13);
+            System.out.println("");
+            
+            //Escribimos el diccionario            
+            for (int i = 0; i < lenDictionary; i++) { //Recorre el diccionario
+                bufferedOutput.write(dictionary[0][i].getBytes()); //Imprime el byte correspondiente a la letra
+                bufferedOutput.write(dictionary[1][i].trim().getBytes()); //Imrpime los bytes correspondientes al código
+                System.out.println(dictionary[0][i] + " " + dictionary[1][i]);
+                bufferedOutput.write(13); //Salto de línea
+            }
+            
+            System.out.println("\nEncriptando....");
+
             String linea;
-            while((linea = br.readLine()) != null){
-                String bitString = "";
-                for (int i = 0; i < linea.length(); i++) {
-                    for (int j = 0; j < dictionary[0].length; j++) {
-                        if (linea.charAt(i) == dictionary[0][j].charAt(0)) {
-                            bitString = bitString + dictionary[1][j];
+            
+            while((linea = bufferedInput.readLine()) != null){
+                bitString = "";
+                for (int i = 0; i < linea.length(); i++) { //Recorre la línea para encriptar
+                    for (int j = 0; j < dictionary[0].length; j++) { //Recorre el diccionario por cada caracter
+                        if (linea.charAt(i) == dictionary[0][j].charAt(0)) { //Si lo encuentra en el diccionario
+                            bitString = bitString + dictionary[1][j];       //Agrega su codificación al String encriptado
                         }
                     }
                 }
+                int residualBits = bitString.length() % 7;
                 System.out.println(bitString);
                 int i = 0;
                 int f = 7;
-                for (int j = 0; f < bitString.length(); j++) {
+                
+                if(linea.length() > 0){ //Imprime byte de lectura de último byte, si la línea no está vacía
+                    bufferedOutput.write(-residualBits);
+                }
+                while (f < bitString.length()) { //Corta el string cada siete caracteres
                     String sByte = bitString.substring(i, f);
-                    int iByte = (Integer.valueOf(sByte.substring(0,1)) * 64) +
-                            (Integer.valueOf(sByte.substring(1,2)) * 32) +
-                            (Integer.valueOf(sByte.substring(2,3)) * 16) +
-                            (Integer.valueOf(sByte.substring(3,4)) * 8) +
-                            (Integer.valueOf(sByte.substring(4,5)) * 4) +
-                            (Integer.valueOf(sByte.substring(5,6)) * 2) +
-                            Integer.valueOf(sByte.substring(6,7));
-                    salida.write(iByte);
-                    System.out.print(iByte + " ");
+                    int iByte = (Integer.valueOf(sByte.substring(0, 1)) * 64) +
+                            (Integer.valueOf(sByte.substring(1, 2)) * 32) +
+                            (Integer.valueOf(sByte.substring(2, 3)) * 16) +
+                            (Integer.valueOf(sByte.substring(3, 4)) * 8) +
+                            (Integer.valueOf(sByte.substring(4, 5)) * 4) +
+                            (Integer.valueOf(sByte.substring(5, 6)) * 2) +
+                             Integer.valueOf(sByte.substring(6, 7));
+                    bufferedOutput.write(-iByte); //Imprime el byte negativo
+                    System.out.print(-iByte + " ");
                     i = i + 7;
                     f = f + 7;
                 }
-                if (true) { //Quedan caracteres menores a un byte
-                    
+                System.out.println("");
+                int iByte = 0;
+                int valueByte = 64;
+                for (int j = 0; j < residualBits; j++) { //Si quedan bits menores a un byte al final
+                    String sByte = bitString.substring(i);
+                    iByte = iByte + (Integer.valueOf(sByte.substring(j, j + 1)) * valueByte);
+                    valueByte = valueByte / 2;
                 }
+                iByte = -iByte;
+                if (iByte > 0) {
+                    System.out.print(-iByte + " ");
+                }
+                
+                bufferedOutput.write(iByte);//Imprime el byte negativo
+                bufferedOutput.write(13);//Salto de línea
             }
+            bufferedInput.close();
+            bufferedOutput.close();
         }
         catch(IOException e){
-        }finally{
-            // En el finally cerramos el fichero, para asegurarnos
-            // que se cierra tanto si todo va bien como si salta 
-            // una excepcion.
-            try{                    
-                if( null != fr ){   
-                    fr.close();     
-                }                  
-            }catch (IOException e2){
-            }
+            e.printStackTrace();
         }
+    }
+    
+    //Desencripta
+    public static void decrypt(String pathArq, String pathTxtToDe) throws IOException {
+        try {
+            
+            //Para leer el texto del archivo (Solo para el diccionario)
+            File archivo = new File (pathArq);
+            FileReader fr = new FileReader (archivo);
+            BufferedReader br = new BufferedReader(fr);
+            
+            //Objetos para escribir el texto del archivo descifrado
+            FileWriter fichero = new FileWriter(pathTxtToDe);
+            PrintWriter pw = new PrintWriter(fichero);
 
-        //Cerramos el binario
-        salida.flush();
-        fos.close();
+            dictionary = new String[2][0];//Reinicia el diccionario
+            
+            System.out.println("Leyendo...");
+            
+            // Lectura del DICCIONARIO
+            String linea;
+            int lengthDictionary = 0;
+            //Lee el largo del diccionario:
+            if((linea = br.readLine()) != null){ //Lee la primera línea del archivo
+                lengthDictionary = linea.substring(0, 1).getBytes()[0];
+                System.out.println("Largo: " + lengthDictionary);
+            }
+            
+            for (int i = 0; i < lengthDictionary; i++) {//Lee las líneas del diccionario
+                linea = br.readLine();
+                incDictionary(linea.substring(0, 1), linea.substring(1).trim());//Ingresa los nuevos datos al diccionario
+            }
+            
+            for (int i = 0; i < dictionary[0].length; i++) {
+                System.out.println(dictionary[0][i] + " " + dictionary[1][i]);
+            }
+            
+            //Cerramos el BufferedRead después de leer el diccionario (Texto)
+            if( null != fr ){   
+               fr.close();     
+            } 
+            
+            //Objetos para leer archivo encriptado en binario
+            FileInputStream fileInput = new FileInputStream(pathArq);
+            BufferedInputStream bi = new BufferedInputStream(fileInput);
+            
+            //Guardamos todos los bytes en un arreglo
+            byte [] array = new byte[bi.available()];
+            bi.read(array);
+            
+            //Avanzamos hasta que encontremos el final del diccionario
+            int contn = 0; //Contador de retornos de carro
+            int i = 0;      //Contador para el arreglo de bytes
+            
+            while ( contn != lengthDictionary + 1 ) {
+                if (array[i] == 13){
+                    contn++;
+                }
+                System.out.println("array[" + i + "] " + array[i]);
+                i++;
+            }
+            System.out.println("I " + i);
+            //Recorremos el texto encriptado
+            linea = String.valueOf(-array[i]);
+            i++;
+            for (int j = i; j < array.length; j++) {
+                System.out.println("array[" + j + "] " + array[j]);
+                if (array[j] != 13) {              //Mientras no llegue a un salto de línea      
+                    linea = linea + ByteToString((int)-array[j]);
+                }else {
+                    pw.println(decodeHuffman(linea));
+                    System.out.println(linea);
+                    linea = "";
+                    if( j + 1 < array.length )
+                    linea = String.valueOf(-array[j + 1]);
+                    j++;
+                }
+            }
+            
+            //Cierra el BufferedInput
+            bi.close();
+            
+            //Cierra el fichero desencriptado
+            fichero.close();
+            
+        }catch(IOException e){
+        }
+    }
+
+    //Incrementa en uno las posiciones del diccionario e ingresa la posición nueva
+    private static void incDictionary(String caracter, String code) {
+        String[][] ndictionary = new String[2][dictionary[0].length + 1];
+        for (int i = 0; i < dictionary[0].length; i++) { //Copia todas las posiciones del diccionario viejo al nuevo
+            ndictionary[0][i] = dictionary[0][i];
+            ndictionary[1][i] = dictionary[1][i];
+        }
+        ndictionary[0][dictionary[0].length] = caracter; //Copia el último caracter
+        ndictionary[1][dictionary[1].length] = code;     //Copia el último código
+        dictionary = ndictionary;
+    }
+
+    public static String decodeHuffman(String linea) {
+        String toPrint = "";
+        
+        int i = 1;
+        int j = 2;
+        String sbString = "";
+        System.out.println(linea);
+        System.out.println((7 - linea.charAt(0)));
+        while (i < ((((linea.length() - 1) / 7 ) - 1) * 7) + Character.getNumericValue(linea.charAt(0)) + 1) {
+            sbString = linea.substring(i, j);
+            System.out.println(linea.substring(i, j));
+            for (int m = 0; m < dictionary[0].length; m++) {
+                if (sbString.matches(dictionary[1][m]) ) {
+                    toPrint = toPrint + dictionary[0][m];
+                    i = j;
+                }
+            }
+            j++;
+        }
+        
+        return toPrint;
+    }
+
+    public static String ByteToString(int b) {
+        String toConcatenate = "";
+        int w = 64;
+        for (int i = 6; i >= 0; i--) {
+            if(b >= w){
+                toConcatenate = toConcatenate + "1";
+                b = b - w;
+            }else{
+                toConcatenate = toConcatenate + "0";
+            }
+            w = w / 2;
+        }
+        return toConcatenate;
     }
 }
