@@ -187,7 +187,8 @@ public class Methods {
             
             //Escribimos el largo del diccionario
             int lenDictionary = dictionary[0].length;
-            bufferedOutput.write(lenDictionary);
+            
+            bufferedOutput.write(lenDictionary + 40);
             bufferedOutput.write(13);
             
             //Escribimos el diccionario            
@@ -248,6 +249,7 @@ public class Methods {
         }
     }
     
+    //-----------------------------------------------------------------------
     //Desencripta
     public static void decrypt(String pathArq, String pathTxtToDe) throws IOException {
         try {
@@ -268,7 +270,7 @@ public class Methods {
             int lengthDictionary = 0;
             //Lee el largo del diccionario:
             if((linea = br.readLine()) != null){ //Lee la primera línea del archivo
-                lengthDictionary = linea.substring(0, 1).getBytes()[0];
+                lengthDictionary = (linea.substring(0, 1).getBytes()[0]) - 40;
             }
             
             for (int i = 0; i < lengthDictionary; i++) {//Lee las líneas del diccionario
